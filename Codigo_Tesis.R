@@ -361,7 +361,7 @@ topicQuality(model = selectedmodel,
              documents = out$documents,
              xlab = "Semantic Coherence",
              ylab = "Exclusivity",
-             labels = 
+             labels = 1:ncol(selectedmodel$theta),
              M = 10)
 
 #visualización de palabras asociadas al topico
