@@ -17,6 +17,8 @@ library(quanteda)
 library(lubridate)
 library(stm)
 library(tm)
+library(ggplot2)
+library(plotly)
 
 #Importar y generar listas de stopwords ----
 full_corpus_aborto <- read_xlsx("Aborto_FavCon.xlsx")
@@ -319,7 +321,22 @@ plotRemoved(procesado$documents,
 out <- prepDocuments(procesado$documents,
                      procesado$vocab,
                      procesado$meta,
-                     lower.thresh = 15)                            
+                     lower.thresh = 15)
+
+docs <- out$documents
+vocab <- out$vocab
+meta <- out$meta
+
+#seleccionando numero de topicos
+storage <- searchK(out$documents,
+                   out$vocab,
+                   init.type = "Spectral", 
+                   M = 10,
+                   prevalence =~ voto,
+                   K = c(4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20),
+                   data = meta)
+
+plot(storage)
 
 #Estimando
 abortoFit <- stm(documents = out$documents,
@@ -330,15 +347,35 @@ abortoFit <- stm(documents = out$documents,
                  data = out$meta,
                  init.type = "Spectral")
 
-#seleccionando numero de topicos
-storage <- searchK(out$documents,
-                   out$vocab,
-                   init.type = "Spectral", 
-                   M = 10,
-                   K = c(3, 4, 5, 6, 7, 8, 9, 10),
-                   data = meta)
+#Comparando coherencia semantica y exclusividad entre cantidad de topicos
+model4<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, 
+            K=4, 
+            data=out$meta, 
+            init.type = "Spectral")
 
-plot(storage)
+model6<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, 
+            K=6, 
+            data=out$meta, 
+            init.type = "Spectral")
+
+model8<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, K=8, 
+            data=out$meta, 
+            init.type = "Spectral")
+
+model10<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, K=10, 
+            data=out$meta, 
+            init.type = "Spectral")
+
+#graficando la comparacion
+
 
 #seleccionando el modelo
 abortoSelect <- selectModel(out$documents,
@@ -365,7 +402,10 @@ topicQuality(model = selectedmodel,
              M = 10)
 
 #Preguntar a Riva por qué no funciona el ploteo anterior
-plotModels(models =  selectedmodel,
+plotModels(models =  abortoSelect,
+           xlab = "Semantic Coherence",
+           ylab = "Exclusivity",
+           labels = 1:length(selectedmodel$runout),
            legend.position = "bottomright")
 
 #visualización de palabras asociadas al topico
