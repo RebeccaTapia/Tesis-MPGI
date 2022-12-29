@@ -412,7 +412,7 @@ plotexcoer
 #seleccionando el modelo
 abortoSelect <- selectModel(out$documents,
                             out$vocab,
-                            K=4,
+                            K=6,
                             content = out$meta$voto,
                             max.em.its = 75,
                             data = out$meta,
@@ -420,25 +420,10 @@ abortoSelect <- selectModel(out$documents,
                             seed = 8458159)
 
 plotModels(abortoSelect,
-           pch = c(1, 2, 3, 4),
+           pch = c(1, 2, 3, 4, 5, 6),
            legend.position = "bottomright")
 
 selectedmodel <- abortoSelect$runout[[2]]
-
-#Preguntar a Riva porqué no funciona
-topicQuality(model = selectedmodel,
-             documents = out$documents,
-             xlab = "Semantic Coherence",
-             ylab = "Exclusivity",
-             labels = 1:ncol(selectedmodel$theta),
-             M = 10)
-
-#Preguntar a Riva por qué no funciona el ploteo anterior
-plotModels(models =  abortoSelect,
-           xlab = "Semantic Coherence",
-           ylab = "Exclusivity",
-           labels = 1:length(selectedmodel$runout),
-           legend.position = "bottomright")
 
 #visualización de palabras asociadas al topico
 labelTopics(selectedmodel)
