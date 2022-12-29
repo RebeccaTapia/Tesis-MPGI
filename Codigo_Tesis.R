@@ -295,10 +295,6 @@ nb_rs_predictions %>%
 
 #Topic Model (STM)----
 #importar datos
-full_corpus_aborto <- read_xlsx("Aborto_FavCon.xlsx")
-stopwords_anatext <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
-stopwords_adicionales <- tibble(palabra = c("artículo", "artículos", "ministro", "ministra", "senador", "senadora", "diputado", "diputada", "parlamentario", "parlamentarios", "señor", "señora", "señores", "presidente", "(...)"))
-stopwords_full = stopwords_anatext %>% full_join(stopwords_adicionales, by= "palabra")
 
 #Dar el formato correcto
 full_corpus_aborto
@@ -374,8 +370,44 @@ model10<-stm(documents=out$documents,
             data=out$meta, 
             init.type = "Spectral")
 
-#graficando la comparacion
+#graficando la comparacion segun ex (exclusividad) y sem (coherencia semantica)
+M4ExSem <- as.data.frame(cbind(c(1:4),
+                               exclusivity(model4), 
+                               semanticCoherence(model=model4, docs), 
+                               "Mod4"))
 
+M6ExSem <- as.data.frame(cbind(c(1:6),
+                               exclusivity(model6), 
+                               semanticCoherence(model=model6, docs), 
+                               "Mod6"))
+
+M8ExSem <- as.data.frame(cbind(c(1:8),
+                               exclusivity(model8), 
+                               semanticCoherence(model=model8, docs), 
+                               "Mod8"))
+
+M10ExSem <- as.data.frame(cbind(c(1:10),
+                               exclusivity(model10), 
+                               semanticCoherence(model=model10, docs), 
+                               "Mod10"))
+
+ModsExSem <- rbind(M4ExSem, M6ExSem, M8ExSem, M10ExSem)
+
+colnames(ModsExSem) <-c ("K","Exclusivity", "SemanticCoherence", "Model")
+
+ModsExSem$Exclusivity <- as.numeric(as.character(ModsExSem$Exclusivity))
+
+ModsExSem$SemanticCoherence <- as.numeric(as.character(ModsExSem$SemanticCoherence))
+
+options(repr.plot.width=7, repr.plot.height=7, repr.plot.res=100)
+
+plotexcoer <- ggplot(ModsExSem, aes(SemanticCoherence, Exclusivity, color = Model)) + geom_point(size = 2, alpha = 0.7) + 
+  geom_text(aes(label=K), nudge_x=.05, nudge_y=.05)+
+  labs(x = "Semantic coherence",
+       y = "Exclusivity",
+       title = "Comparing exclusivity and semantic coherence")
+
+plotexcoer
 
 #seleccionando el modelo
 abortoSelect <- selectModel(out$documents,
