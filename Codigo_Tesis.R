@@ -364,6 +364,10 @@ topicQuality(model = selectedmodel,
              labels = 1:ncol(selectedmodel$theta),
              M = 10)
 
+#Preguntar a Riva por qué no funciona el ploteo anterior
+plotModels(models =  selectedmodel,
+           legend.position = "bottomright")
+
 #visualización de palabras asociadas al topico
 labelTopics(selectedmodel)
 
