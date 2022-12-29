@@ -291,9 +291,14 @@ nb_rs_predictions %>%
     color = NULL,
     title = "Curva ROC para la predicción de voto")
 
-#Topic Model (Quanteda)----
-#Llevando al formato correcto
+#Topic Model (STM)----
+#importar datos
+full_corpus_aborto <- read_xlsx("Aborto_FavCon.xlsx")
+stopwords_anatext <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
+stopwords_adicionales <- tibble(palabra = c("artículo", "artículos", "ministro", "ministra", "senador", "senadora", "diputado", "diputada", "parlamentario", "parlamentarios", "señor", "señora", "señores", "presidente", "(...)"))
+stopwords_full = stopwords_anatext %>% full_join(stopwords_adicionales, by= "palabra")
 
+#Dar el formato correcto
 full_corpus_aborto
 procesado <- textProcessor(full_corpus_aborto$intervencion,
                            language = "es",
