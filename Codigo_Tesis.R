@@ -30,19 +30,19 @@ stopwords_full = stopwords_anatext %>% full_join(stopwords_adicionales, by= "pal
 
 #Tokenizacion y Lematización ----
 
-#Descargando y cargando modelo de español GSD
-udpipe_download_model(language = "spanish-gsd")
+#Descargando y cargando modelo de español Ancora
+udpipe_download_model(language = "spanish-ancora")
 
-modelo_gsd <- udpipe_load_model(file = "spanish-gsd-ud-2.5-191206.udpipe")
+modelo_ancora <- udpipe_load_model(file = "spanish-ancora-ud-2.5-191206.udpipe")
 
 #Anotando  sobre los corpus con su respectivos lemas
-full_corpus_aborto_anotado <- udpipe_annotate(object = modelo_gsd, x =  full_corpus_aborto$intervencion)
+full_corpus_aborto_anotado <- udpipe_annotate(object = modelo_ancora, x =  full_corpus_aborto$intervencion)
 full_corpus_aborto_anotado <- as_tibble(full_corpus_aborto_anotado)
 
-corpus_contra_anotado <- udpipe_annotate(object = modelo_gsd, x =  corpus_contra$intervencion) 
+corpus_contra_anotado <- udpipe_annotate(object = modelo_ancora, x =  corpus_contra$intervencion) 
 corpus_contra_anotado <- as_tibble(corpus_contra_anotado)
 
-corpus_favor_anotado <- udpipe_annotate(object = modelo_gsd, x =  corpus_favor$intervencion)
+corpus_favor_anotado <- udpipe_annotate(object = modelo_ancora, x =  corpus_favor$intervencion)
 corpus_favor_anotado <- as_tibble(corpus_favor_anotado)
 
 # Contando lemas
@@ -61,11 +61,17 @@ frecuencia_lema_favor <- corpus_favor_anotado %>%
   count(lemma, sort = TRUE) %>% 
   anti_join(stopwords_full, by= c("lemma" = "palabra"))
 
-frecuencia_lema_resto <- corpus_favor_anotado %>% 
+frecuencia_lema_resto_favor <- corpus_favor_anotado %>% 
   filter(upos %in% c("NOUN", "VERB", "ADJ", "ADV", "PROPN")) %>%
   count(lemma, sort = TRUE) %>% 
   anti_join(stopwords_full, by= c("lemma" = "palabra")) %>% 
   anti_join(frecuencia_lema_contra, by = "lemma")
+
+frecuencia_lema_resto_contra <- corpus_contra_anotado %>% 
+  filter(upos %in% c("NOUN", "VERB", "ADJ", "ADV", "PROPN")) %>%
+  count(lemma, sort = TRUE) %>% 
+  anti_join(stopwords_full, by= c("lemma" = "palabra")) %>% 
+  anti_join(frecuencia_lema_favor, by = "lemma")
 
 #Tokenizar por texto del corpus general
 tokenize_words(full_corpus_aborto$intervencion, 
@@ -323,13 +329,14 @@ docs <- out$documents
 vocab <- out$vocab
 meta <- out$meta
 
+search
 #seleccionando numero de topicos
 storage <- searchK(out$documents,
                    out$vocab,
                    init.type = "Spectral", 
                    M = 10,
                    prevalence =~ voto,
-                   K = c(4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20),
+                   K = c(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20),
                    data = meta)
 
 plot(storage)
@@ -337,14 +344,14 @@ plot(storage)
 #Estimando
 abortoFit <- stm(documents = out$documents,
                  vocab = out$vocab,
-                 K = 4,
+                 K = 6,
                  content = out$meta$voto,
                  max.em.its = 75,
                  data = out$meta,
                  init.type = "Spectral")
 
 #Comparando coherencia semantica y exclusividad entre cantidad de topicos
-model4<-stm(documents=out$documents, 
+model5<-stm(documents=out$documents, 
             vocab=out$vocab, 
             prevalence =~ voto, 
             K=4, 
@@ -358,9 +365,22 @@ model6<-stm(documents=out$documents,
             data=out$meta, 
             init.type = "Spectral")
 
+model7<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, 
+            K=7, 
+            data=out$meta, 
+            init.type = "Spectral")
+
 model8<-stm(documents=out$documents, 
             vocab=out$vocab, 
             prevalence =~ voto, K=8, 
+            data=out$meta, 
+            init.type = "Spectral")
+
+model9<-stm(documents=out$documents, 
+            vocab=out$vocab, 
+            prevalence =~ voto, K=9, 
             data=out$meta, 
             init.type = "Spectral")
 
@@ -371,27 +391,37 @@ model10<-stm(documents=out$documents,
             init.type = "Spectral")
 
 #graficando la comparacion segun ex (exclusividad) y sem (coherencia semantica)
-M4ExSem <- as.data.frame(cbind(c(1:4),
-                               exclusivity(model4), 
-                               semanticCoherence(model=model4, docs), 
-                               "Mod4"))
+M5ExSem <- as.data.frame(cbind(c(1:5),
+                               exclusivity(model5), 
+                               semanticCoherence(model=model5, docs), 
+                               "Mod5"))
 
 M6ExSem <- as.data.frame(cbind(c(1:6),
                                exclusivity(model6), 
                                semanticCoherence(model=model6, docs), 
                                "Mod6"))
 
+M7ExSem <- as.data.frame(cbind(c(1:7),
+                               exclusivity(model7), 
+                               semanticCoherence(model=model7, docs), 
+                               "Mod7"))
+
 M8ExSem <- as.data.frame(cbind(c(1:8),
                                exclusivity(model8), 
                                semanticCoherence(model=model8, docs), 
                                "Mod8"))
+
+M9ExSem <- as.data.frame(cbind(c(1:9),
+                               exclusivity(model9), 
+                               semanticCoherence(model=model9, docs), 
+                               "Mod9"))
 
 M10ExSem <- as.data.frame(cbind(c(1:10),
                                exclusivity(model10), 
                                semanticCoherence(model=model10, docs), 
                                "Mod10"))
 
-ModsExSem <- rbind(M4ExSem, M6ExSem, M8ExSem, M10ExSem)
+ModsExSem <- rbind(M5ExSem, M6ExSem, M7ExSem, M8ExSem, M9ExSem, M10ExSem)
 
 colnames(ModsExSem) <-c ("K","Exclusivity", "SemanticCoherence", "Model")
 
@@ -429,5 +459,15 @@ selectedmodel <- abortoSelect$runout[[2]]
 labelTopics(selectedmodel)
 
 #visualización de porción de corpus utilizada por cada tema
-plot(selectedmodel, type = "summary", xlim = c(0, 1))
+plot(selectedmodel, 
+     type = "summary",
+     xlim = c(0, 1))
 
+#visualización  de prevalencia por contraste
+
+plot()
+plot(prep, covariate = "voto", topics = c(1, 2, 3, 4, 5, 6, 7, 8),
+        + model = abortoFit, method = "difference", cov.value1 = "C",
+        + cov.value2 = "F",
+        + xlab = "Más en Contra ... Más a favor",
+        + main = "Effect of Liberal vs. Conservative", xlim = c(-0.1, 0.1))
