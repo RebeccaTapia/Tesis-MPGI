@@ -226,6 +226,30 @@ conf_mat_resampled(nb_rs, tidy = FALSE) %>%
 
 #Modelo de clasificación Lasso----
 #Llamamos al model tuning para aplicar Lasso
+lasso_spec <- logistic_reg(penalty = tune(), mixture = 1) %>%
+  set_mode("classification") %>%
+  set_engine("glmnet")
+
+lasso_spec
+
+#Nuevo procedimiento
+lasso_wf <- workflow() %>% 
+  add_recipe(aborto_rec) %>% 
+  add_model(lasso_spec)
+
+lasso_wf
+
+set.seed(2020)
+lasso_rs <- tune_grid(
+  lasso_wf,
+  aborto_folds,
+  control = control_resamples(save_pred = TRUE))
+
+lasso_rs_metrics <- collect_metrics(lasso_rs)
+lasso_rs_predictions <- collect_predictions(lasso_rs)
+
+lasso_rs_metrics
+
 tune_spec <- logistic_reg(penalty = tune(), mixture = 1) %>%
   set_mode("classification") %>%
   set_engine("glmnet")
@@ -273,6 +297,11 @@ fitted_lasso %>%
   extract_fit_parsnip() %>%
   tidy() %>%
   arrange(-estimate)
+
+fitted_lasso %>%
+  extract_fit_parsnip() %>%
+  tidy() %>%
+  arrange(estimate)
 
 
 
